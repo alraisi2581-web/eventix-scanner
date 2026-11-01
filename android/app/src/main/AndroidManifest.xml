@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Talking to the Eventix server (release builds too: the template only had it in debug) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Reading invitation QR codes; asked for at run time, the app still works by name without it -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <!-- allowBackup=false: the sign-in token and guest lists never go to cloud backups -->
     <application
-        android:label="eventix_scanner"
+        android:label="Eventix Scanner"
+        android:allowBackup="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
