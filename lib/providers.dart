@@ -17,6 +17,10 @@ final databaseProvider =
 final apiProvider = Provider<EventixApi>((ref) => EventixApi());
 final sessionStoreProvider = Provider<SessionStore>((ref) => SessionStore());
 
+/// Network changes (a hint to try uploading); replaced in tests.
+final connectivityProvider = Provider<Stream<List<ConnectivityResult>>>(
+    (ref) => Connectivity().onConnectivityChanged);
+
 // ── Sign-in ─────────────────────────────────────────────────────────────────
 
 /// The signed-in user, or null. Works offline: a saved token is trusted until
@@ -112,7 +116,7 @@ final checkinServiceProvider =
     Provider<CheckinService>((ref) => CheckinService(ref.watch(databaseProvider)));
 
 class SyncController extends Notifier<SyncStatus> {
-  late final SyncService service;
+  late SyncService service; // a rebuild disposes the old one (onDispose) and makes a new one
   StreamSubscription<List<ConnectivityResult>>? _net;
 
   @override
@@ -126,9 +130,9 @@ class SyncController extends Notifier<SyncStatus> {
     );
     service.start();
     // a network change is only a hint; a request that works is the real test
-    _net = Connectivity().onConnectivityChanged.listen((r) {
+    _net = ref.watch(connectivityProvider).listen((r) {
       if (!r.contains(ConnectivityResult.none)) service.kick(refreshList: true);
-    });
+    }, onError: (Object _) {});
     ref.onDispose(() {
       service.stop();
       _net?.cancel();

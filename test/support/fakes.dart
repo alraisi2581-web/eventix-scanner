@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:drift/drift.dart' show driftRuntimeOptions;
+import 'package:drift/drift.dart' show DatabaseConnection, driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:eventix_scanner/core/qr.dart';
 import 'package:eventix_scanner/data/api/eventix_api.dart';
@@ -21,7 +21,9 @@ AppDatabase memoryDb() {
   }
   // the two-phone tests open one database per phone, on separate executors
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
-  return AppDatabase.forTesting(NativeDatabase.memory());
+  // streams close at once, so widget tests end with no pending timers
+  return AppDatabase.forTesting(DatabaseConnection(NativeDatabase.memory(),
+      closeStreamsSynchronously: true));
 }
 
 Session sessionFor(int userId, String token, {String username = 'scanner'}) =>
@@ -77,6 +79,7 @@ class FakeEventixServer {
 
   Future<http.Response> _handle(http.Request req) async {
     if (offline) throw const SocketException('offline');
+    if (req.url.path.endsWith('login.php')) return _login(req);
     final auth = req.headers['Authorization'] ?? '';
     final token = auth.startsWith('Bearer ') ? auth.substring(7) : null;
     if (!validTokens.contains(token)) {
@@ -122,6 +125,24 @@ class FakeEventixServer {
     }
     return _json(404, {
       'error': {'code': 'not_found', 'message': 'No such endpoint'}
+    });
+  }
+
+  /// Accounts: scanner1 / scanner2 (password "right"), inviter1, temp1.
+  http.Response _login(http.Request req) {
+    final b = jsonDecode(req.body) as Map;
+    final user = b['username'], pw = b['password'];
+    Map<String, Object?> err(String code) => {'error': {'code': code, 'message': code}};
+    if (pw != 'right') return _json(401, err('invalid_credentials'));
+    if (user == 'inviter1') return _json(403, err('role_not_allowed'));
+    if (user == 'temp1') return _json(403, err('password_change_required'));
+    final n = user == 'scanner1' ? 1 : (user == 'scanner2' ? 2 : 0);
+    if (n == 0) return _json(401, err('invalid_credentials'));
+    return _json(200, {
+      'token': n == 1 ? 'token-a' : 'token-b',
+      'token_type': 'Bearer',
+      'expires_at': DateTime.now().add(const Duration(days: 14)).toIso8601String(),
+      'user': {'id': n, 'username': user, 'role': 'scanner'},
     });
   }
 
