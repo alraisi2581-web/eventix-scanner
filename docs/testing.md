@@ -8,7 +8,8 @@ flutter test
 
 On Windows, `flutter test` needs a `sqlite3.dll` for the in-memory database
 tests. Point `SQLITE3_DLL` at one (Python ships one in its `DLLs` folder).
-macOS and Linux have SQLite built in.
+macOS has SQLite built in; on Linux install `libsqlite3-dev`. The same tests run
+in CI on every push ([.github/workflows/android.yml](../.github/workflows/android.yml)).
 
 | File | What it proves |
 |---|---|
