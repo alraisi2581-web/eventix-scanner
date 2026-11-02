@@ -155,32 +155,56 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final t = context.evx;
     final event = ref.watch(eventProvider(widget.eventId)).valueOrNull;
     final counts = ref.watch(countsProvider(widget.eventId)).valueOrNull;
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
+        titleSpacing: 0,
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(event == null ? '' : context.pick(event.titleEn, event.titleAr),
               overflow: TextOverflow.ellipsis),
           if (counts != null)
             Text(l.checkedInOf(counts.checkedIn, counts.total),
                 key: const Key('checked-in-count'),
-                style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                style: evxText(13, color: Colors.white70)),
         ]),
         actions: [
-          IconButton(
-            tooltip: l.torch,
-            icon: const Icon(Icons.flashlight_on_outlined),
-            onPressed: () => _camera.toggleTorch(),
+          ValueListenableBuilder<MobileScannerState>(
+            valueListenable: _camera,
+            builder: (_, cam, _) => IconButton(
+              tooltip: l.torch,
+              onPressed: cam.isRunning ? () => _camera.toggleTorch() : null,
+              icon: Icon(
+                cam.torchState == TorchState.on
+                    ? Icons.flashlight_on_rounded
+                    : Icons.flashlight_off_outlined,
+                color: cam.torchState == TorchState.on ? t.gold : null,
+              ),
+            ),
           ),
           IconButton(
             tooltip: l.activity,
-            icon: const Icon(Icons.history),
+            icon: const Icon(Icons.history_rounded),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
                 builder: (_) => ActivityScreen(eventId: widget.eventId))),
           ),
+          const SizedBox(width: 4),
         ],
+        // how full the room is, as the web's progress bar
+        bottom: counts == null
+            ? null
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(3),
+                child: EvxProgress(
+                  height: 3,
+                  value: counts.total == 0 ? 0 : counts.checkedIn / counts.total,
+                  color: t.gold,
+                  track: Colors.white.withValues(alpha: .12),
+                ),
+              ),
       ),
       // expand: some children are plain (not Positioned) when hidden, which would shrink a default Stack to nothing
       body: Stack(fit: StackFit.expand, children: [
@@ -197,20 +221,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             ),
           ),
         ),
-        // the scan frame only over a working camera, never over the problem message
+        // the scan window only over a working camera, never over the problem message
         ValueListenableBuilder<MobileScannerState>(
           valueListenable: _camera,
           builder: (_, cam, _) => cam.isRunning
-              ? const Positioned.fill(child: IgnorePointer(child: _Viewfinder()))
+              ? Positioned.fill(child: IgnorePointer(child: _Viewfinder(hint: l.scanHint)))
               : const SizedBox.shrink(),
         ),
         Positioned(
-          top: 12,
-          left: 12,
-          right: 12,
+          top: 14,
+          left: 14,
+          right: 14,
           child: Column(children: [
             const SyncStatusChip(),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             ConflictBanner(eventId: widget.eventId),
           ]),
         ),
@@ -220,14 +244,18 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           builder: (_, cam, _) => cam.error != null
               ? const SizedBox.shrink()
               : Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 24,
+                  left: 20,
+                  right: 20,
+                  bottom: 22,
                   child: SafeArea(
                     child: FilledButton.icon(
                       key: const Key('search-by-name'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: t.gold, // the web's .btn-gold
+                        minimumSize: const Size.fromHeight(54),
+                      ),
                       onPressed: _searchByName,
-                      icon: const Icon(Icons.search),
+                      icon: const Icon(Icons.person_search_rounded),
                       label: Text(l.searchByName),
                     ),
                   ),
@@ -241,20 +269,76 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 }
 
-/// A square guide over the camera where the QR should go.
+/// The scan window: the camera dimmed around a clear square with gold corner
+/// brackets, and a line saying what to do.
 class _Viewfinder extends StatelessWidget {
-  const _Viewfinder();
+  const _Viewfinder({required this.hint});
+  final String hint;
   @override
-  Widget build(BuildContext context) => Center(
-        child: Container(
-          width: 250,
-          height: 250,
-          decoration: BoxDecoration(
-            border: Border.all(color: EvxColors.gold, width: 4),
-            borderRadius: BorderRadius.circular(24),
-          ),
+  Widget build(BuildContext context) {
+    final gold = context.evx.gold;
+    return LayoutBuilder(builder: (context, box) {
+      final side = (box.maxWidth * .68).clamp(200.0, 300.0);
+      final window = Rect.fromCenter(
+          center: Offset(box.maxWidth / 2, box.maxHeight * .44),
+          width: side,
+          height: side);
+      return Stack(children: [
+        Positioned.fill(child: CustomPaint(painter: _WindowPainter(window, gold))),
+        Positioned(
+          left: 24,
+          right: 24,
+          top: window.bottom + 22,
+          child: Text(hint,
+              textAlign: TextAlign.center,
+              style: evxText(15, weight: FontWeight.w500, color: Colors.white, height: 1.4)
+                  .copyWith(shadows: const [Shadow(blurRadius: 8, color: Colors.black54)])),
         ),
+      ]);
+    });
+  }
+}
+
+class _WindowPainter extends CustomPainter {
+  _WindowPainter(this.window, this.gold);
+  final Rect window;
+  final Color gold;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final hole = RRect.fromRectAndRadius(window, const Radius.circular(22));
+    canvas.drawPath(
+      Path.combine(PathOperation.difference, Path()..addRect(Offset.zero & size),
+          Path()..addRRect(hole)),
+      Paint()..color = const Color(0xA60B1222), // navy-black scrim, 65%
+    );
+    final p = Paint()
+      ..color = gold
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+    const arm = 34.0, r = 22.0;
+    final corners = [
+      (window.left, window.top, 1.0, 1.0),
+      (window.right, window.top, -1.0, 1.0),
+      (window.left, window.bottom, 1.0, -1.0),
+      (window.right, window.bottom, -1.0, -1.0),
+    ];
+    // one bracket per corner: a straight arm, the rounded corner, a straight arm
+    for (final (cx, cy, sx, sy) in corners) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(cx, cy + sy * (r + arm))
+          ..lineTo(cx, cy + sy * r)
+          ..quadraticBezierTo(cx, cy, cx + sx * r, cy)
+          ..lineTo(cx + sx * (r + arm), cy),
+        p,
       );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_WindowPainter old) => old.window != window || old.gold != gold;
 }
 
 /// Camera access denied (or the camera failed): explain, offer Settings,
@@ -270,23 +354,23 @@ class _CameraProblem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     return ColoredBox(
-      color: EvxColors.bg,
+      color: context.evx.bg,
       child: MessageView(
         key: const Key('camera-problem'),
-        icon: denied ? Icons.no_photography : Icons.videocam_off,
-        color: EvxColors.warning,
+        icon: denied ? Icons.no_photography_outlined : Icons.videocam_off_outlined,
+        tone: EvxTone.warning,
         title: denied ? l.cameraDeniedTitle : l.cameraErrorTitle,
         body: denied ? l.cameraDeniedBody : l.cameraErrorBody,
         actions: [
           if (denied)
             FilledButton.icon(
               onPressed: onOpenSettings,
-              icon: const Icon(Icons.settings),
+              icon: const Icon(Icons.settings_outlined),
               label: Text(l.openSettings),
             ),
           OutlinedButton.icon(
             onPressed: onSearch,
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.person_search_rounded),
             label: Text(l.searchByName),
           ),
         ],

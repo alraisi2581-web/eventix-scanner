@@ -43,7 +43,7 @@ background. The server has the final word on who was first.
 
 | Layer | Files | Responsibility |
 |---|---|---|
-| Screens | `lib/ui/*` | Sign-in, events, scanner, search by name, activity. Loading, empty and error states; English and Arabic (right-to-left). |
+| Screens | `lib/ui/*` | Sign-in, events, scanner, search by name, activity. Loading, empty and error states; English and Arabic (right-to-left). `theme.dart` holds the Eventix web app's design tokens (light and dark), `brand.dart` its logo and components (card, badge, alert, language switch). |
 | State | `lib/providers.dart` | Riverpod providers that wire everything together: session, sync status, database streams. |
 | Check-in logic | `lib/services/checkin_service.dart` | Turns one scan into an outcome (checked in, already in, not on the list, wrong event, not an invitation) and writes the outbox row in the same transaction. |
 | Sync | `lib/services/sync_service.dart` | Uploads pending check-ins in batches of 100, applies the server's answers, re-downloads the open guest list every minute while online, backs off when offline. |

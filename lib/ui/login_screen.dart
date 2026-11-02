@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers.dart';
 import 'common.dart';
 
+/// The web's sign-in card (login.php, .evx-login-card): language switch and
+/// theme button on top, the Eventix logo, labelled fields, navy button, footer.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
   @override
@@ -42,6 +44,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (_busy || !_form.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
     setState(() {
       _busy = true;
       _error = null;
@@ -60,109 +63,141 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final t = context.evx;
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+
+    Widget label(String text) => Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(text,
+              style: theme.textTheme.labelMedium!
+                  .copyWith(color: t.text2, fontSize: 13.5)),
+        );
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l.appTitle),
-        actions: [
-          LanguageButton(
-              onSelected: (c) => ref.read(languageProvider.notifier).set(c)),
-        ],
-      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: Form(
-                key: _form,
-                child: AutofillGroup(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Icon(Icons.qr_code_scanner,
-                          size: 72, color: EvxColors.navy),
-                      const SizedBox(height: 12),
-                      Text(l.signInTitle,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.titleLarge),
-                      const SizedBox(height: 4),
-                      Text(l.signInHint,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 24),
-                      for (final w in _waiting)
-                        Card(
-                          color: const Color(0xFFFDF5E6),
-                          child: ListTile(
-                            leading: const Icon(Icons.cloud_upload_outlined,
-                                color: EvxColors.warning),
-                            title: Text(l.pendingFromBefore(w.count, w.username)),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: t.surface,
+                  borderRadius: BorderRadius.circular(radiusXl),
+                  border: Border.all(color: t.border),
+                  boxShadow: t.shadowLg,
+                ),
+                padding: const EdgeInsets.fromLTRB(26, 22, 26, 26),
+                child: Form(
+                  key: _form,
+                  child: AutofillGroup(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(children: [
+                          LanguageToggle(
+                              onSelected: (c) =>
+                                  ref.read(languageProvider.notifier).set(c)),
+                          const Spacer(),
+                          ThemeToggle(
+                              onToggle: () => ref
+                                  .read(themeModeProvider.notifier)
+                                  .toggle(theme.brightness)),
+                        ]),
+                        const SizedBox(height: 26),
+                        Center(
+                          child: EvxLogo(
+                              height: 34,
+                              color: dark ? Colors.white : Colors.black),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(l.signInTitle,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium!
+                                .copyWith(color: t.text3, fontSize: 14)),
+                        const SizedBox(height: 26),
+                        for (final w in _waiting) ...[
+                          EvxAlert(
+                            text: l.pendingFromBefore(w.count, w.username),
+                            icon: Icons.cloud_upload_outlined,
                           ),
-                        ),
-                      TextFormField(
-                        controller: _username,
-                        decoration: InputDecoration(
-                          labelText: l.username,
-                          prefixIcon: const Icon(Icons.person_outline),
-                        ),
-                        autofillHints: const [AutofillHints.username],
-                        textInputAction: TextInputAction.next,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        enabled: !_busy,
-                        validator: (v) {
-                          final t = (v ?? '').trim();
-                          if (t.isEmpty) return l.usernameRequired;
-                          if (t.length > 100) return l.usernameTooLong;
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _password,
-                        decoration: InputDecoration(
-                          labelText: l.password,
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            tooltip: _showPassword ? l.hidePassword : l.showPassword,
-                            icon: Icon(_showPassword
-                                ? Icons.visibility_off
-                                : Icons.visibility),
-                            onPressed: () =>
-                                setState(() => _showPassword = !_showPassword),
+                          const SizedBox(height: 16),
+                        ],
+                        label(l.username),
+                        TextFormField(
+                          controller: _username,
+                          autofillHints: const [AutofillHints.username],
+                          textInputAction: TextInputAction.next,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          enabled: !_busy,
+                          style: theme.textTheme.bodyLarge,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.person_outline_rounded),
                           ),
+                          validator: (v) {
+                            final s = (v ?? '').trim();
+                            if (s.isEmpty) return l.usernameRequired;
+                            if (s.length > 100) return l.usernameTooLong;
+                            return null;
+                          },
                         ),
-                        obscureText: !_showPassword,
-                        autofillHints: const [AutofillHints.password],
-                        textInputAction: TextInputAction.done,
-                        enabled: !_busy,
-                        onFieldSubmitted: (_) => _submit(),
-                        validator: (v) =>
-                            (v ?? '').isEmpty ? l.passwordRequired : null,
-                      ),
-                      if (_error != null) ...[
-                        const SizedBox(height: 16),
-                        Text(
-                          apiErrorText(l, _error!),
-                          key: const Key('login-error'),
-                          style: const TextStyle(color: EvxColors.danger),
-                          textAlign: TextAlign.center,
+                        const SizedBox(height: 18),
+                        label(l.password),
+                        TextFormField(
+                          controller: _password,
+                          obscureText: !_showPassword,
+                          autofillHints: const [AutofillHints.password],
+                          textInputAction: TextInputAction.done,
+                          enabled: !_busy,
+                          style: theme.textTheme.bodyLarge,
+                          onFieldSubmitted: (_) => _submit(),
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.lock_outline_rounded),
+                            suffixIcon: IconButton(
+                              tooltip: _showPassword ? l.hidePassword : l.showPassword,
+                              icon: Icon(_showPassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined),
+                              onPressed: () =>
+                                  setState(() => _showPassword = !_showPassword),
+                            ),
+                          ),
+                          validator: (v) =>
+                              (v ?? '').isEmpty ? l.passwordRequired : null,
                         ),
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 200),
+                          child: _error == null
+                              ? const SizedBox(height: 26)
+                              : Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 18),
+                                  child: EvxAlert(
+                                    key: const Key('login-error'),
+                                    text: apiErrorText(l, _error!),
+                                    tone: EvxTone.danger,
+                                    icon: Icons.error_outline_rounded,
+                                  ),
+                                ),
+                        ),
+                        FilledButton(
+                          onPressed: _busy ? null : _submit,
+                          child: _busy
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2.5, color: Colors.white))
+                              : Text(l.signIn),
+                        ),
+                        const SizedBox(height: 22),
+                        Text('${l.footer} © ${DateTime.now().year}',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall!
+                                .copyWith(color: t.text3, fontSize: 12.5)),
                       ],
-                      const SizedBox(height: 24),
-                      FilledButton(
-                        onPressed: _busy ? null : _submit,
-                        child: _busy
-                            ? const SizedBox(
-                                height: 22,
-                                width: 22,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2.5, color: Colors.white))
-                            : Text(l.signIn),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),

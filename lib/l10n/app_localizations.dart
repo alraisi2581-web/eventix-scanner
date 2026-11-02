@@ -263,13 +263,13 @@ abstract class AppLocalizations {
   /// No description provided for @listSaved.
   ///
   /// In en, this message translates to:
-  /// **'Guest list saved on this phone'**
+  /// **'Saved on this phone'**
   String get listSaved;
 
   /// No description provided for @listNotSaved.
   ///
   /// In en, this message translates to:
-  /// **'Guest list not downloaded yet'**
+  /// **'Not downloaded yet'**
   String get listNotSaved;
 
   /// No description provided for @downloadingList.
@@ -619,6 +619,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'earlier'**
   String get earlierTime;
+
+  /// No description provided for @footer.
+  ///
+  /// In en, this message translates to:
+  /// **'Eventix by Thermo Tech'**
+  String get footer;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the QR code on the invitation'**
+  String get scanHint;
+
+  /// No description provided for @openScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Open scanner'**
+  String get openScanner;
+
+  /// No description provided for @eventProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{checked} / {total} checked in ({pct}%)'**
+  String eventProgress(int checked, int total, int pct);
+
+  /// No description provided for @summaryUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded'**
+  String get summaryUploaded;
+
+  /// No description provided for @summaryWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get summaryWaiting;
+
+  /// No description provided for @summaryNotCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t count'**
+  String get summaryNotCounted;
+
+  /// No description provided for @badgeUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded'**
+  String get badgeUploaded;
+
+  /// No description provided for @badgeNotCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t count'**
+  String get badgeNotCounted;
+
+  /// No description provided for @checkedInAtTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in at {time}'**
+  String checkedInAtTime(String time);
 }
 
 class _AppLocalizationsDelegate

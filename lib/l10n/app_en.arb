@@ -12,7 +12,16 @@
   "usernameTooLong": "That username is too long",
   "passwordRequired": "Enter your password",
   "pendingFromBefore": "{count, plural, =1{1 check-in by {username} is waiting to upload.} other{{count} check-ins by {username} are waiting to upload.}} Sign in as {username} to send them.",
-  "@pendingFromBefore": {"placeholders": {"count": {"type": "int"}, "username": {"type": "String"}}},
+  "@pendingFromBefore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "username": {
+        "type": "String"
+      }
+    }
+  },
   "errorWrongPassword": "Wrong username or password.",
   "errorRoleNotAllowed": "This account can't check guests in. Sign in with a scanner account.",
   "errorPasswordChange": "Your password is temporary. Sign in once at eventix.om/login to choose your own, then sign in here with it.",
@@ -23,21 +32,39 @@
   "errorServer": "Eventix couldn't answer. Try again in a moment.",
   "yourEvents": "Your events",
   "signedInAs": "Signed in as {username}",
-  "@signedInAs": {"placeholders": {"username": {"type": "String"}}},
+  "@signedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
   "noEventsTitle": "No events yet",
   "noEventsBody": "Your account isn't assigned to an event. Ask an Eventix admin to give you access, then pull down to refresh.",
   "offlineSavedList": "Offline — showing what's saved on this phone.",
   "retry": "Try again",
   "guestCount": "{count, plural, =1{1 guest} other{{count} guests}}",
-  "@guestCount": {"placeholders": {"count": {"type": "int"}}},
-  "listSaved": "Guest list saved on this phone",
-  "listNotSaved": "Guest list not downloaded yet",
+  "@guestCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "listSaved": "Saved on this phone",
+  "listNotSaved": "Not downloaded yet",
   "downloadingList": "Downloading the guest list…",
   "downloadNeedsNetwork": "Connect to the internet once to download this event's guest list. After that, scanning works offline.",
   "signOut": "Sign out",
   "signOutPendingTitle": "Check-ins not uploaded yet",
   "signOutPendingBody": "{count, plural, =1{1 check-in hasn't reached Eventix.} other{{count} check-ins haven't reached Eventix.}} They stay on this phone and upload when you sign in again. Sign out anyway?",
-  "@signOutPendingBody": {"placeholders": {"count": {"type": "int"}}},
+  "@signOutPendingBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "cancel": "Cancel",
   "ok": "OK",
   "language": "Language",
@@ -46,32 +73,77 @@
   "statusAllUploaded": "Online · all uploaded",
   "statusUploading": "Uploading…",
   "statusWaiting": "{count} waiting to upload",
-  "@statusWaiting": {"placeholders": {"count": {"type": "int"}}},
+  "@statusWaiting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "statusOffline": "Offline · {count} waiting",
-  "@statusOffline": {"placeholders": {"count": {"type": "int"}}},
+  "@statusOffline": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "statusOfflineNoneWaiting": "Offline · scanning still works",
   "statusSignIn": "Sign in again to upload",
   "statusConnecting": "Connecting…",
   "checkedInOf": "{checked} of {total} in",
-  "@checkedInOf": {"placeholders": {"checked": {"type": "int"}, "total": {"type": "int"}}},
+  "@checkedInOf": {
+    "placeholders": {
+      "checked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "resultCheckedIn": "Checked in",
   "resultAlready": "Already checked in",
   "resultAlreadyAt": "Already checked in · {time}",
-  "@resultAlreadyAt": {"placeholders": {"time": {"type": "String"}}},
+  "@resultAlreadyAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "resultScannedHere": "Scanned on this phone at {time}",
-  "@resultScannedHere": {"placeholders": {"time": {"type": "String"}}},
+  "@resultScannedHere": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "resultNotOnList": "Not on the guest list",
   "resultNotOnListHint": "This invitation isn't for this event, or the guest was removed from the list.",
   "resultWrongEvent": "Invitation for another event",
   "resultWrongEventHint": "This QR is for “{event}”.",
-  "@resultWrongEventHint": {"placeholders": {"event": {"type": "String"}}},
+  "@resultWrongEventHint": {
+    "placeholders": {
+      "event": {
+        "type": "String"
+      }
+    }
+  },
   "resultNotInvitation": "Not an Eventix invitation",
   "resultNotInvitationHint": "Ask the guest for the QR code on their invitation.",
   "rsvpNotAttending": "RSVP: not attending",
   "rsvpNoReply": "RSVP: no reply",
   "rsvpMaybe": "RSVP: maybe",
   "table": "Table {table}",
-  "@table": {"placeholders": {"table": {"type": "String"}}},
+  "@table": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
   "tapToContinue": "Tap to continue",
   "searchByName": "Search by name",
   "activity": "Check-ins on this phone",
@@ -84,25 +156,103 @@
   "searchHint": "Name or table number",
   "searchTooShort": "Type at least 2 letters, or a table number",
   "searchNoMatch": "No guest matches “{query}”",
-  "@searchNoMatch": {"placeholders": {"query": {"type": "String"}}},
+  "@searchNoMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "checkInConfirm": "Check in {name}?",
-  "@checkInConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@checkInConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "checkIn": "Check in",
   "badgeIn": "In",
   "activityEmpty": "No check-ins on this phone yet.",
   "statePending": "Waiting to upload",
   "stateConfirmed": "Uploaded · checked in {time}",
-  "@stateConfirmed": {"placeholders": {"time": {"type": "String"}}},
+  "@stateConfirmed": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "stateConflict": "Already checked in at {time} — this phone's scan didn't count",
-  "@stateConflict": {"placeholders": {"time": {"type": "String"}}},
+  "@stateConflict": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "stateRejected": "Not accepted by Eventix: {reason}",
-  "@stateRejected": {"placeholders": {"reason": {"type": "String"}}},
+  "@stateRejected": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "conflictBanner": "{name} was already checked in at {time}. This phone's scan didn't count.",
-  "@conflictBanner": {"placeholders": {"name": {"type": "String"}, "time": {"type": "String"}}},
+  "@conflictBanner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "rejectedBanner": "{name}'s check-in wasn't accepted: {reason}",
-  "@rejectedBanner": {"placeholders": {"name": {"type": "String"}, "reason": {"type": "String"}}},
+  "@rejectedBanner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "reasonRemoved": "the guest is no longer on the list",
   "undoHint": "To undo a check-in, ask an Eventix admin.",
   "uploadNow": "Upload now",
-  "earlierTime": "earlier"
+  "earlierTime": "earlier",
+  "footer": "Eventix by Thermo Tech",
+  "scanHint": "Point the camera at the QR code on the invitation",
+  "openScanner": "Open scanner",
+  "eventProgress": "{checked} / {total} checked in ({pct}%)",
+  "@eventProgress": {
+    "placeholders": {
+      "checked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryUploaded": "Uploaded",
+  "summaryWaiting": "Waiting",
+  "summaryNotCounted": "Didn't count",
+  "badgeUploaded": "Uploaded",
+  "badgeNotCounted": "Didn't count",
+  "checkedInAtTime": "Checked in at {time}",
+  "@checkedInAtTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

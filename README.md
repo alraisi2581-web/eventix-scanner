@@ -41,6 +41,7 @@ guest was already checked in.
 | Loading, empty and error states | On every screen. For example, "No events yet — ask an admin", "Offline — showing what's saved on this phone", and retry buttons. |
 | Device capability: camera | QR scanning with ML Kit (Android) and Apple Vision (iOS) via `mobile_scanner`. If camera access is denied: an explanation, Open Settings, and check-in by name. The camera stops and restarts with the app's lifecycle. |
 | Languages | English and Arabic (right-to-left). |
+| Design | The Eventix web app's own design system: its colour tokens in light and dark (with the web's toggle), the Eventix logo and favicon (app icon, launch screen, navy top bar), and its fonts, DM Sans, Playfair Display and Noto Naskh Arabic, bundled so they work offline. |
 
 ## Architecture
 
@@ -188,7 +189,9 @@ lib/
   data/db/                     Drift database (+ generated code)
   data/session_store.dart      token + language in secure storage
   services/                    CheckinService (scan decisions), SyncService (uploads)
-  ui/                          screens and widgets
+  ui/                          screens and widgets; theme.dart = the web's design tokens
+assets/brand/                  Eventix logo, mark and icon (SVG) + rendered icon / splash PNGs
+assets/fonts/                  DM Sans, Playfair Display, Noto Naskh Arabic (+ OFL licences)
   l10n/                        English and Arabic texts (ARB) + generated code
 test/                          unit, flow and widget tests; fake Eventix server
 docs/                          architecture, decisions, backend API, testing, evidence
@@ -211,12 +214,24 @@ The app's own code is original. It is built on these open-source packages
 | [connectivity_plus](https://pub.dev/packages/connectivity_plus) | Network change events | BSD-3-Clause |
 | [uuid](https://pub.dev/packages/uuid) | Check-in ids | MIT |
 | [app_settings](https://pub.dev/packages/app_settings) | "Open Settings" when camera access is denied | MIT |
+| [flutter_svg](https://pub.dev/packages/flutter_svg) | The Eventix logo, drawn from its SVG | MIT |
+| [flutter_launcher_icons](https://pub.dev/packages/flutter_launcher_icons), [flutter_native_splash](https://pub.dev/packages/flutter_native_splash) | Generate the app icon and launch screen (development only) | MIT |
 | [build_runner](https://pub.dev/packages/build_runner), [flutter_lints](https://pub.dev/packages/flutter_lints) | Code generation, lints (development only) | BSD-3-Clause |
+
+Fonts, bundled in `assets/fonts` with their licence files, all under the SIL Open Font License 1.1, from
+[Google Fonts](https://github.com/google/fonts):
+- [DM Sans](https://github.com/googlefonts/dm-fonts), © 2014 The DM Sans Project Authors;
+- [Playfair Display](https://github.com/clauseggers/Playfair), © 2017 The Playfair Display Project Authors;
+- [Noto Naskh Arabic](https://github.com/notofonts/arabic), © 2022 The Noto Project Authors.
+
+The Eventix logo, favicon and colours are Eventix's own (`assets/brand`, from
+the Eventix website). The app icon and launch images were rendered from those
+SVGs.
 
 Patterns followed from documentation: camera start and stop on lifecycle
 changes, as in the
 [mobile_scanner README](https://pub.dev/packages/mobile_scanner#lifecycle-changes).
-Eventix's colours come from the Eventix website's stylesheet.
+
 
 ## AI assistance and my contribution
 

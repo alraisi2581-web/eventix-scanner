@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'data/api/eventix_api.dart';
@@ -109,6 +109,30 @@ class LanguageController extends Notifier<Locale?> {
 
 final languageProvider =
     NotifierProvider<LanguageController, Locale?>(LanguageController.new);
+
+/// Light or dark, as the website's toggle: the phone's setting until chosen.
+class ThemeModeController extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() {
+    ref.read(sessionStoreProvider).themeMode().then((m) {
+      if (m == 'light') state = ThemeMode.light;
+      if (m == 'dark') state = ThemeMode.dark;
+    });
+    return ThemeMode.system;
+  }
+
+  /// Switches to the other of what is on screen now.
+  Future<void> toggle(Brightness showing) async {
+    final next = showing == Brightness.dark ? ThemeMode.light : ThemeMode.dark;
+    state = next;
+    await ref
+        .read(sessionStoreProvider)
+        .setThemeMode(next == ThemeMode.dark ? 'dark' : 'light');
+  }
+}
+
+final themeModeProvider =
+    NotifierProvider<ThemeModeController, ThemeMode>(ThemeModeController.new);
 
 // ── Check-ins and sync ──────────────────────────────────────────────────────
 

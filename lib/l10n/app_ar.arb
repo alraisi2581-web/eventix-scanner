@@ -27,8 +27,8 @@
   "offlineSavedList": "غير متصل — يُعرض المحفوظ على هذا الهاتف.",
   "retry": "حاول مجددًا",
   "guestCount": "{count, plural, =0{لا ضيوف} =1{ضيف واحد} two{ضيفان} few{{count} ضيوف} other{{count} ضيفًا}}",
-  "listSaved": "قائمة الضيوف محفوظة على هذا الهاتف",
-  "listNotSaved": "لم تُنزَّل قائمة الضيوف بعد",
+  "listSaved": "محفوظة على هذا الهاتف",
+  "listNotSaved": "لم تُنزَّل بعد",
   "downloadingList": "جارٍ تنزيل قائمة الضيوف…",
   "downloadNeedsNetwork": "اتصل بالإنترنت مرة واحدة لتنزيل قائمة ضيوف هذه الفعالية، وبعدها يعمل المسح دون اتصال.",
   "signOut": "تسجيل الخروج",
@@ -86,5 +86,15 @@
   "reasonRemoved": "الضيف لم يعد في القائمة",
   "undoHint": "لإلغاء تسجيل حضور، تواصل مع مسؤول إيفنتكس.",
   "uploadNow": "رفع الآن",
-  "earlierTime": "في وقت سابق"
+  "earlierTime": "في وقت سابق",
+  "footer": "Eventix بواسطة Thermo Tech",
+  "scanHint": "وجّه الكاميرا إلى رمز QR في الدعوة",
+  "openScanner": "فتح الماسح",
+  "eventProgress": "حضر {checked} من {total} ({pct}٪)",
+  "summaryUploaded": "تم الرفع",
+  "summaryWaiting": "بانتظار الرفع",
+  "summaryNotCounted": "لم يُحتسب",
+  "badgeUploaded": "تم الرفع",
+  "badgeNotCounted": "لم يُحتسب",
+  "checkedInAtTime": "سُجّل الحضور الساعة {time}"
 }

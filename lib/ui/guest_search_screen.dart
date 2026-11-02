@@ -92,35 +92,26 @@ class _GuestSearchScreenState extends ConsumerState<GuestSearchScreen> {
     final q = _query.text.trim();
     Widget body;
     if (!_valid) {
-      body = MessageView(icon: Icons.person_search, title: l.searchTooShort);
+      body = MessageView(icon: Icons.person_search_rounded, title: l.searchTooShort);
     } else if (_results == null || (_searching && _results!.isEmpty)) {
       body = const LoadingView();
     } else if (_results!.isEmpty) {
-      body = MessageView(icon: Icons.search_off, title: l.searchNoMatch(q));
+      body = MessageView(
+          icon: Icons.search_off_rounded, tone: EvxTone.neutral, title: l.searchNoMatch(q));
     } else {
-      body = ListView.separated(
-        itemCount: _results!.length,
-        separatorBuilder: (_, _) => const Divider(height: 1),
-        itemBuilder: (_, i) {
-          final g = _results![i];
-          final other = context.other(g.guest.nameEn, g.guest.nameAr);
-          return ListTile(
-            title: Text(context.pick(g.guest.nameEn, g.guest.nameAr)),
-            subtitle: Text([
-              ?other,
-              if (g.guest.tableNumber != null) l.table(g.guest.tableNumber!),
-            ].join(' · ')),
-            trailing: g.checkedIn
-                ? Chip(
-                    label: Text(l.badgeIn),
-                    avatar: const Icon(Icons.check, size: 16, color: Colors.white),
-                    backgroundColor: EvxColors.success,
-                    labelStyle: const TextStyle(color: Colors.white),
-                  )
-                : const Icon(Icons.login),
-            onTap: () => _checkIn(g),
-          );
-        },
+      body = ListView(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        children: [
+          EvxCard(
+            padding: EdgeInsets.zero,
+            child: Column(children: [
+              for (final (i, g) in _results!.indexed) ...[
+                if (i > 0) const Divider(height: 1),
+                _GuestRow(guest: g, onTap: () => _checkIn(g)),
+              ],
+            ]),
+          ),
+        ],
       );
     }
 
@@ -128,7 +119,7 @@ class _GuestSearchScreenState extends ConsumerState<GuestSearchScreen> {
       appBar: AppBar(title: Text(l.searchByName)),
       body: Column(children: [
         Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
           child: TextField(
             key: const Key('guest-search'),
             controller: _query,
@@ -136,7 +127,8 @@ class _GuestSearchScreenState extends ConsumerState<GuestSearchScreen> {
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: l.searchHint,
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search_rounded),
+              counterText: '',
               errorText: q.isNotEmpty && !_valid ? l.searchTooShort : null,
             ),
             maxLength: 60,
@@ -146,6 +138,66 @@ class _GuestSearchScreenState extends ConsumerState<GuestSearchScreen> {
         ),
         Expanded(child: body),
       ]),
+    );
+  }
+}
+
+/// One guest in the results: name in both languages, table, RSVP and whether
+/// they are in — the web guest table's columns as a row.
+class _GuestRow extends StatelessWidget {
+  const _GuestRow({required this.guest, required this.onTap});
+  final GuestAtDoor guest;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final t = context.evx;
+    final g = guest.guest;
+    final other = context.other(g.nameEn, g.nameAr);
+    final rsvp = switch (g.rsvp) {
+      'Not Attending' => (l.rsvpNotAttending, EvxTone.danger),
+      'No Reply' => (l.rsvpNoReply, EvxTone.neutral),
+      'Maybe' => (l.rsvpMaybe, EvxTone.warning),
+      _ => null,
+    };
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        child: Row(children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: guest.checkedIn ? t.successBg : t.goldBg,
+            child: guest.checkedIn
+                ? Icon(Icons.check_rounded, color: t.success)
+                : Text(
+                    context.pick(g.nameEn, g.nameAr).characters.first.toUpperCase(),
+                    style: evxDisplay(17, color: t.gold)),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(context.pick(g.nameEn, g.nameAr),
+                  style: Theme.of(context).textTheme.titleSmall!.copyWith(fontSize: 15.5)),
+              if (other != null)
+                Text(other, style: Theme.of(context).textTheme.bodySmall),
+              if (g.tableNumber != null || rsvp != null) ...[
+                const SizedBox(height: 6),
+                Wrap(spacing: 6, runSpacing: 4, children: [
+                  if (g.tableNumber != null)
+                    EvxBadge(l.table(g.tableNumber!), icon: Icons.table_restaurant_outlined),
+                  if (rsvp != null) EvxBadge(rsvp.$1, tone: rsvp.$2),
+                ]),
+              ],
+            ]),
+          ),
+          const SizedBox(width: 8),
+          guest.checkedIn
+              ? EvxBadge(l.badgeIn, tone: EvxTone.success, icon: Icons.check_rounded)
+              : Icon(Icons.login_rounded, color: t.gold),
+        ]),
+      ),
     );
   }
 }

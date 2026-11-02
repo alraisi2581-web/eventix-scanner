@@ -118,10 +118,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get listSaved => 'قائمة الضيوف محفوظة على هذا الهاتف';
+  String get listSaved => 'محفوظة على هذا الهاتف';
 
   @override
-  String get listNotSaved => 'لم تُنزَّل قائمة الضيوف بعد';
+  String get listNotSaved => 'لم تُنزَّل بعد';
 
   @override
   String get downloadingList => 'جارٍ تنزيل قائمة الضيوف…';
@@ -339,4 +339,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get earlierTime => 'في وقت سابق';
+
+  @override
+  String get footer => 'Eventix بواسطة Thermo Tech';
+
+  @override
+  String get scanHint => 'وجّه الكاميرا إلى رمز QR في الدعوة';
+
+  @override
+  String get openScanner => 'فتح الماسح';
+
+  @override
+  String eventProgress(int checked, int total, int pct) {
+    return 'حضر $checked من $total ($pct٪)';
+  }
+
+  @override
+  String get summaryUploaded => 'تم الرفع';
+
+  @override
+  String get summaryWaiting => 'بانتظار الرفع';
+
+  @override
+  String get summaryNotCounted => 'لم يُحتسب';
+
+  @override
+  String get badgeUploaded => 'تم الرفع';
+
+  @override
+  String get badgeNotCounted => 'لم يُحتسب';
+
+  @override
+  String checkedInAtTime(String time) {
+    return 'سُجّل الحضور الساعة $time';
+  }
 }

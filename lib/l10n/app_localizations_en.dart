@@ -115,10 +115,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get listSaved => 'Guest list saved on this phone';
+  String get listSaved => 'Saved on this phone';
 
   @override
-  String get listNotSaved => 'Guest list not downloaded yet';
+  String get listNotSaved => 'Not downloaded yet';
 
   @override
   String get downloadingList => 'Downloading the guest list…';
@@ -334,4 +334,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get earlierTime => 'earlier';
+
+  @override
+  String get footer => 'Eventix by Thermo Tech';
+
+  @override
+  String get scanHint => 'Point the camera at the QR code on the invitation';
+
+  @override
+  String get openScanner => 'Open scanner';
+
+  @override
+  String eventProgress(int checked, int total, int pct) {
+    return '$checked / $total checked in ($pct%)';
+  }
+
+  @override
+  String get summaryUploaded => 'Uploaded';
+
+  @override
+  String get summaryWaiting => 'Waiting';
+
+  @override
+  String get summaryNotCounted => 'Didn\'t count';
+
+  @override
+  String get badgeUploaded => 'Uploaded';
+
+  @override
+  String get badgeNotCounted => 'Didn\'t count';
+
+  @override
+  String checkedInAtTime(String time) {
+    return 'Checked in at $time';
+  }
 }

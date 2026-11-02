@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -39,6 +40,7 @@ class _EventixScannerAppState extends ConsumerState<EventixScannerApp> {
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(languageProvider);
+    final themeMode = ref.watch(themeModeProvider);
     // signed out (or the server ended the sign-in): close the scan screens
     ref.listen(authProvider, (prev, next) {
       if (prev?.valueOrNull != null && next.valueOrNull == null) {
@@ -48,8 +50,11 @@ class _EventixScannerAppState extends ConsumerState<EventixScannerApp> {
 
     return MaterialApp(
       navigatorKey: _navigator,
+      debugShowCheckedModeBanner: false,
       onGenerateTitle: (c) => AppLocalizations.of(c).appTitle,
-      theme: eventixTheme(),
+      theme: buildEventixTheme(Brightness.light, arabicUi: false),
+      darkTheme: buildEventixTheme(Brightness.dark, arabicUi: false),
+      themeMode: themeMode,
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
@@ -58,6 +63,19 @@ class _EventixScannerAppState extends ConsumerState<EventixScannerApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      // In Arabic the interface is set in Noto Naskh Arabic, as the website's [dir=rtl]
+      builder: (context, child) {
+        final theme = context.isArabic
+            ? buildEventixTheme(Theme.of(context).brightness, arabicUi: true)
+            : Theme.of(context);
+        return Theme(
+          data: theme,
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.light, // the navy bars carry white icons
+            child: child!,
+          ),
+        );
+      },
       home: const _AuthGate(),
     );
   }
@@ -69,9 +87,20 @@ class _AuthGate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ref.watch(authProvider).when(
-          loading: () => const Scaffold(body: LoadingView()),
+          loading: () => const _Launch(),
           error: (_, _) => const LoginScreen(),
           data: (s) => s == null ? const LoginScreen() : const EventsScreen(),
         );
   }
+}
+
+/// The moment between the native launch screen and the first screen: the same
+/// navy and logo, so the hand-over is invisible.
+class _Launch extends StatelessWidget {
+  const _Launch();
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        backgroundColor: Color(0xFF1A2744),
+        body: Center(child: EvxLogo(height: 34, color: Colors.white)),
+      );
 }

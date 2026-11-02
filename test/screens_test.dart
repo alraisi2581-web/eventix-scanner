@@ -16,6 +16,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fakes.dart';
 
+/// A time as the app shows it inside a sentence: isolated left-to-right.
+String ltr(String s) => String.fromCharCode(0x2066) + s + String.fromCharCode(0x2069);
+
 void main() {
   late FakeEventixServer server;
   late AppDatabase db;
@@ -33,7 +36,15 @@ void main() {
         connectivityProvider.overrideWithValue(const Stream.empty()),
       ];
 
+  /// A phone-sized screen (390 × 844, as an iPhone 14), not the 800 × 600 default.
+  void phone(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+  }
+
   Future<void> pumpApp(WidgetTester tester) async {
+    phone(tester);
     await tester.pumpWidget(
         ProviderScope(overrides: overrides(), child: const EventixScannerApp()));
     await tester.pumpAndSettle();
@@ -43,6 +54,13 @@ void main() {
   Future<void> closeApp(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
+  }
+
+  /// Moves the test clock on until [finder] shows (database work waits on timers).
+  Future<void> pumpUntil(WidgetTester tester, Finder finder) async {
+    for (var i = 0; i < 40 && finder.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
   }
 
   Future<void> signIn(WidgetTester tester, String user, String password) async {
@@ -85,7 +103,7 @@ void main() {
       expect(find.text('Your events'), findsOneWidget);
       expect(find.text('Test event'), findsOneWidget);
       expect(find.text('Signed in as scanner1'), findsOneWidget);
-      expect(find.textContaining('Guest list not downloaded yet'), findsOneWidget);
+      expect(find.textContaining('Not downloaded yet'), findsOneWidget);
       await closeApp(tester);
     });
 
@@ -114,9 +132,7 @@ void main() {
 
   testWidgets('Arabic: right-to-left with Arabic texts', (tester) async {
     await pumpApp(tester);
-    await tester.tap(find.byIcon(Icons.translate));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('العربية').last);
+    await tester.tap(find.text('ع')); // the EN | ع switch, as on the website
     await tester.pumpAndSettle();
     expect(find.text('سجّل الدخول لتسجيل حضور الضيوف'), findsOneWidget);
     expect(Directionality.of(tester.element(find.byType(TextFormField).first)),
@@ -126,10 +142,11 @@ void main() {
 
   group('at the door', () {
     Future<void> withScreen(WidgetTester tester, Widget screen) async {
+      phone(tester);
       await tester.pumpWidget(ProviderScope(
         overrides: overrides(),
         child: MaterialApp(
-          theme: eventixTheme(),
+          theme: buildEventixTheme(Brightness.light, arabicUi: false),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: screen,
@@ -164,7 +181,7 @@ void main() {
           ScanResultView(
               outcome: AlreadyCheckedIn(g, timeLabel: '7:42 pm', onThisPhone: false),
               onDismiss: () {}));
-      expect(find.text('Already checked in · 7:42 pm'), findsOneWidget);
+      expect(find.text('Already checked in · ${ltr('7:42 pm')}'), findsOneWidget);
       await closeApp(tester);
     });
 
@@ -178,6 +195,7 @@ void main() {
 
     testWidgets('search by name: validation, results, check-in', (tester) async {
       await guest(tester, 1);
+      phone(tester);
       await tester.pumpWidget(ProviderScope(
         overrides: [
           ...overrides(),
@@ -214,14 +232,12 @@ void main() {
       expect(find.text('Type at least 2 letters, or a table number'), findsWidgets);
 
       await tester.enterText(find.byKey(const Key('guest-search')), 'zzz');
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.pumpAndSettle();
+      await pumpUntil(tester, find.text('No guest matches “zzz”'));
       expect(find.text('No guest matches “zzz”'), findsOneWidget);
 
       await tester.enterText(find.byKey(const Key('guest-search')), 'Guest 2');
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ListTile, 'Guest 2'));
+      await pumpUntil(tester, find.descendant(of: find.byType(EvxCard), matching: find.text('Guest 2')));
+      await tester.tap(find.descendant(of: find.byType(EvxCard), matching: find.text('Guest 2')));
       await tester.pumpAndSettle();
       expect(find.text('Check in Guest 2?'), findsOneWidget);
       await tester.tap(find.widgetWithText(FilledButton, 'Check in'));
@@ -249,9 +265,9 @@ void main() {
       });
 
       await withScreen(tester, ActivityScreen(eventId: server.eventId));
-      expect(find.textContaining("Already checked in at 7:05 pm"), findsOneWidget);
+      expect(find.textContaining('Already checked in at ${ltr('7:05 pm')}'), findsOneWidget);
       await withScreen(tester, Scaffold(body: ConflictBanner(eventId: server.eventId)));
-      expect(find.textContaining('Guest 3 was already checked in at 7:05 pm'), findsOneWidget);
+      expect(find.textContaining('Guest 3 was already checked in at ${ltr('7:05 pm')}'), findsOneWidget);
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('conflict-banner')), findsNothing);

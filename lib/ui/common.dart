@@ -3,45 +3,16 @@ import 'package:intl/intl.dart';
 
 import '../data/api/eventix_api.dart';
 import '../l10n/app_localizations.dart';
+import 'brand.dart';
+import 'theme.dart';
 
-/// Eventix's colours (app/assets/css/eventix.css on the website).
-class EvxColors {
-  static const navy = Color(0xFF1A2744);
-  static const gold = Color(0xFFB8923A);
-  static const bg = Color(0xFFF8F7F4);
-  static const success = Color(0xFF2D7A4F);
-  static const warning = Color(0xFFC07A12);
-  static const danger = Color(0xFFC0392B);
-}
+export 'brand.dart';
+export 'theme.dart';
 
-ThemeData eventixTheme() {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: EvxColors.navy,
-    primary: EvxColors.navy,
-    secondary: EvxColors.gold,
-    error: EvxColors.danger,
-    surface: Colors.white,
-  );
-  return ThemeData(
-    colorScheme: scheme,
-    scaffoldBackgroundColor: EvxColors.bg,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: EvxColors.navy,
-      foregroundColor: Colors.white,
-    ),
-    inputDecorationTheme: const InputDecorationTheme(
-      border: OutlineInputBorder(),
-      filled: true,
-      fillColor: Colors.white,
-    ),
-    filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
-        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-    ),
-  );
-}
+// Unicode LEFT-TO-RIGHT ISOLATE and POP DIRECTIONAL ISOLATE (written as numbers: the
+// characters themselves are invisible in source code)
+final _lri = String.fromCharCode(0x2066);
+final _pdi = String.fromCharCode(0x2069);
 
 extension L10nContext on BuildContext {
   AppLocalizations get l10n => AppLocalizations.of(this);
@@ -58,6 +29,10 @@ extension L10nContext on BuildContext {
     final second = isArabic ? en : ar;
     return second.trim().isEmpty || second == pick(en, ar) ? null : second;
   }
+
+  /// [s] isolated left-to-right ("7:03 pm" from the server stays "7:03 pm"
+  /// inside an Arabic sentence instead of reading "pm 7:03").
+  String ltr(String s) => '$_lri$s$_pdi';
 
   /// A time on this phone's clock, e.g. "7:42 PM" / "٧:٤٢ م".
   String clock(DateTime t) =>
@@ -91,16 +66,23 @@ class LoadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const CircularProgressIndicator(),
+          SizedBox(
+            width: 30,
+            height: 30,
+            child: CircularProgressIndicator(strokeWidth: 3, color: context.evx.gold),
+          ),
           if (label != null) ...[
             const SizedBox(height: 16),
-            Text(label!, textAlign: TextAlign.center),
+            Text(label!,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall),
           ],
         ]),
       );
 }
 
-/// A full-screen message: empty lists, errors, denied permissions.
+/// A full-screen message: empty lists, errors, denied permissions. The icon
+/// sits in a tinted circle; the title is set in Playfair like the web's headings.
 class MessageView extends StatelessWidget {
   const MessageView({
     super.key,
@@ -108,36 +90,59 @@ class MessageView extends StatelessWidget {
     required this.title,
     this.body,
     this.actions = const [],
-    this.color,
+    this.tone = EvxTone.gold,
   });
   final IconData icon;
   final String title;
   final String? body;
   final List<Widget> actions;
-  final Color? color;
+  final EvxTone tone;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.evx;
     final theme = Theme.of(context);
+    final (fg, bg) = switch (tone) {
+      EvxTone.success => (t.success, t.successBg),
+      EvxTone.warning => (t.warning, t.warningBg),
+      EvxTone.danger => (t.danger, t.dangerBg),
+      EvxTone.info => (t.info, t.infoBg),
+      EvxTone.neutral => (t.text2, t.surface2),
+      EvxTone.gold => (t.gold, t.goldBg),
+    };
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 64, color: color ?? theme.colorScheme.outline),
-          const SizedBox(height: 16),
-          Text(title,
-              style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
-          if (body != null) ...[
-            const SizedBox(height: 8),
-            Text(body!,
-                style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
-          ],
-          if (actions.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            ...actions.map((a) => Padding(
-                padding: const EdgeInsets.only(bottom: 8), child: a)),
-          ],
-        ]),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: bg,
+                shape: BoxShape.circle,
+                border: Border.all(color: fg.withValues(alpha: .25)),
+              ),
+              child: Icon(icon, size: 40, color: fg),
+            ),
+            const SizedBox(height: 20),
+            Text(title,
+                style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),
+            if (body != null) ...[
+              const SizedBox(height: 8),
+              Text(body!,
+                  style: theme.textTheme.bodyMedium!.copyWith(color: t.text2),
+                  textAlign: TextAlign.center),
+            ],
+            if (actions.isNotEmpty) ...[
+              const SizedBox(height: 28),
+              ...actions.map((a) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: SizedBox(width: double.infinity, child: a))),
+            ],
+          ]),
+        ),
       ),
     );
   }
@@ -149,31 +154,15 @@ class ErrorView extends StatelessWidget {
   final VoidCallback onRetry;
   @override
   Widget build(BuildContext context) => MessageView(
-        icon: Icons.cloud_off,
+        icon: Icons.cloud_off_rounded,
         title: message,
-        color: EvxColors.danger,
+        tone: EvxTone.danger,
         actions: [
           FilledButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
             label: Text(context.l10n.retry),
           ),
-        ],
-      );
-}
-
-/// The language switch in app bars.
-class LanguageButton extends StatelessWidget {
-  const LanguageButton({super.key, required this.onSelected});
-  final ValueChanged<String> onSelected;
-  @override
-  Widget build(BuildContext context) => PopupMenuButton<String>(
-        icon: const Icon(Icons.translate),
-        tooltip: context.l10n.language,
-        onSelected: onSelected,
-        itemBuilder: (_) => [
-          PopupMenuItem(value: 'en', child: Text(context.l10n.english)),
-          PopupMenuItem(value: 'ar', child: Text(context.l10n.arabic)),
         ],
       );
 }

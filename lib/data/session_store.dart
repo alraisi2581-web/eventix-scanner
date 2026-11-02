@@ -57,6 +57,11 @@ class SessionStore {
   Future<String?> lastUsername() => _storage.read(key: 'last_username');
 
   Future<String?> language() => _storage.read(key: 'language');
+
+  /// 'light' / 'dark'; null follows the phone (as the website does).
+  Future<String?> themeMode() => _storage.read(key: 'theme');
+  Future<void> setThemeMode(String mode) =>
+      _storage.write(key: 'theme', value: mode);
   Future<void> setLanguage(String code) =>
       _storage.write(key: 'language', value: code);
 }
