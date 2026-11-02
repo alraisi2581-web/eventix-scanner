@@ -2,7 +2,8 @@
 
 The app needs these endpoints on the existing Eventix server. They are part of
 the Eventix code base (private repository `eventix`, branch `scanner-api`,
-commit `ee2d7b8`). They went live on `https://eventix.om` on 2026-11-01.
+commit `ee2d7b8`). They went live on `https://eventix.om` on 2026-11-01. The
+source is copied in [../backend/](../backend/), at the same paths.
 
 | File (Eventix repo) | Purpose |
 |---|---|

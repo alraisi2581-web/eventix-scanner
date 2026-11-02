@@ -124,8 +124,10 @@ flutter build ipa                 # iOS, on a Mac (set your signing team in Xcod
 ## Backend dependencies
 
 The app needs the **Eventix scanner API**, built for this project and added to
-the existing Eventix server. It went live on eventix.om on 2026-11-01. Contract,
-deployment and rollback are in **[docs/backend-api.md](docs/backend-api.md)**.
+the existing Eventix server. It went live on eventix.om on 2026-11-01. Its source
+is in **[backend/](backend/)**, copied from the private Eventix code base at the
+same paths. Contract, deployment and rollback are in
+**[docs/backend-api.md](docs/backend-api.md)**.
 
 | Endpoint | Purpose |
 |---|---|
@@ -195,6 +197,7 @@ assets/fonts/                  DM Sans, Playfair Display, Noto Naskh Arabic (+ O
   l10n/                        English and Arabic texts (ARB) + generated code
 test/                          unit, flow and widget tests; fake Eventix server
 docs/                          architecture, decisions, backend API, testing, evidence
+backend/                       the scanner API's server code (PHP), migration and its 71 tests
 ```
 
 ## Credits

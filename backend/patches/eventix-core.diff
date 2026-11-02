@@ -1,0 +1,30 @@
+diff --git a/app/config/config.php b/app/config/config.php
+index 1116cce..7a35823 100644
+--- a/app/config/config.php
++++ b/app/config/config.php
+@@ -289,7 +289,11 @@ define('RSVP_PER_PERSON_DEADLINE_DAYS', env_int('RSVP_PER_PERSON_DEADLINE_DAYS',
+ // file early (everything does, via db.php) inherit the hardened cookie. The guard
+ // prevents the "cannot be changed when a session is active" warnings that previously
+ // fired because auth.php/csrf.php started an unhardened session first.
+-if (session_status() === PHP_SESSION_NONE) {
++// EVX_STATELESS (the scanner app's API, includes/scanner_api.php): no session and no cookie at all —
++// the caller signs in with a bearer token each request, and $_SESSION is filled in memory only.
++if (defined('EVX_STATELESS')) {
++    $_SESSION = [];
++} elseif (session_status() === PHP_SESSION_NONE) {
+     $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+ 
+     ini_set('session.use_strict_mode', '1');
+diff --git a/app/includes/auth.php b/app/includes/auth.php
+index 7523954..2cba972 100644
+--- a/app/includes/auth.php
++++ b/app/includes/auth.php
+@@ -14,7 +14,7 @@ require_once __DIR__ . '/../config/db.php';
+ require_once __DIR__ . '/utils.php';
+ 
+ // Safety net only — config.php normally already started the (hardened) session.
+-if (session_status() === PHP_SESSION_NONE) {
++if (session_status() === PHP_SESSION_NONE && !defined('EVX_STATELESS')) {
+     session_start();
+ }
+ 
