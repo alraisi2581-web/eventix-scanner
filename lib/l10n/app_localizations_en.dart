@@ -176,7 +176,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get statusOfflineNoneWaiting => 'Offline · scanning still works';
+  String get statusOfflineNoneWaiting => 'Offline';
 
   @override
   String get statusSignIn => 'Sign in again to upload';

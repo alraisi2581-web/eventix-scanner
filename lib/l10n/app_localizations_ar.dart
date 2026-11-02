@@ -181,7 +181,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get statusOfflineNoneWaiting => 'غير متصل · المسح يعمل';
+  String get statusOfflineNoneWaiting => 'غير متصل';
 
   @override
   String get statusSignIn => 'سجّل الدخول مجددًا للرفع';

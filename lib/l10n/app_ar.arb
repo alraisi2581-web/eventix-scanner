@@ -43,7 +43,7 @@
   "statusUploading": "جارٍ الرفع…",
   "statusWaiting": "{count} بانتظار الرفع",
   "statusOffline": "غير متصل · {count} بانتظار الرفع",
-  "statusOfflineNoneWaiting": "غير متصل · المسح يعمل",
+  "statusOfflineNoneWaiting": "غير متصل",
   "statusSignIn": "سجّل الدخول مجددًا للرفع",
   "statusConnecting": "جارٍ الاتصال…",
   "checkedInOf": "حضر {checked} من {total}",

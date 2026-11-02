@@ -359,7 +359,7 @@ abstract class AppLocalizations {
   /// No description provided for @statusOfflineNoneWaiting.
   ///
   /// In en, this message translates to:
-  /// **'Offline · scanning still works'**
+  /// **'Offline'**
   String get statusOfflineNoneWaiting;
 
   /// No description provided for @statusSignIn.
