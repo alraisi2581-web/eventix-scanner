@@ -41,6 +41,14 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   DateTime _lastCodeAt = DateTime(2000);
   bool _deciding = false;
 
+  /// Set when door staff go to Settings to allow the camera: the next return
+  /// to the app tries the camera once more. Without it a denial is final for
+  /// this screen — retrying on every resume re-opened Android's permission
+  /// dialog, whose own resume retried again (the screen flickered).
+  bool _retryCameraOnResume = false;
+
+  bool get _cameraAllowed => _camera.value.hasCameraPermission;
+
   @override
   void initState() {
     super.initState();
@@ -75,11 +83,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        // also after the user turned camera access on in Settings
-        _startCamera();
+        if (_cameraAllowed || _retryCameraOnResume) {
+          _retryCameraOnResume = false;
+          _startCamera();
+        }
         _sync.kick(refreshList: true);
       case AppLifecycleState.inactive:
-        if (_camera.value.hasCameraPermission) _stopCamera();
+        if (_cameraAllowed) _stopCamera();
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
@@ -133,11 +143,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 
   Future<void> _searchByName() async {
-    _stopCamera();
+    final hadCamera = _cameraAllowed;
+    if (hadCamera) _stopCamera();
     final outcome = await Navigator.of(context).push<ScanOutcome>(
         MaterialPageRoute(builder: (_) => GuestSearchScreen(eventId: widget.eventId)));
     if (!mounted) return;
-    _startCamera();
+    if (hadCamera) _startCamera();
     if (outcome != null) _show(outcome);
   }
 
@@ -171,17 +182,28 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           ),
         ],
       ),
-      body: Stack(children: [
+      // expand: some children are plain (not Positioned) when hidden, which would shrink a default Stack to nothing
+      body: Stack(fit: StackFit.expand, children: [
         Positioned.fill(
           child: MobileScanner(
             controller: _camera,
             errorBuilder: (context, error) => _CameraProblem(
               denied: error.errorCode == MobileScannerErrorCode.permissionDenied,
               onSearch: _searchByName,
+              onOpenSettings: () {
+                _retryCameraOnResume = true;
+                AppSettings.openAppSettings();
+              },
             ),
           ),
         ),
-        const Positioned.fill(child: IgnorePointer(child: _Viewfinder())),
+        // the scan frame only over a working camera, never over the problem message
+        ValueListenableBuilder<MobileScannerState>(
+          valueListenable: _camera,
+          builder: (_, cam, _) => cam.isRunning
+              ? const Positioned.fill(child: IgnorePointer(child: _Viewfinder()))
+              : const SizedBox.shrink(),
+        ),
         Positioned(
           top: 12,
           left: 12,
@@ -192,18 +214,24 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             ConflictBanner(eventId: widget.eventId),
           ]),
         ),
-        Positioned(
-          left: 16,
-          right: 16,
-          bottom: 24,
-          child: SafeArea(
-            child: FilledButton.icon(
-              key: const Key('search-by-name'),
-              onPressed: _searchByName,
-              icon: const Icon(Icons.search),
-              label: Text(l.searchByName),
-            ),
-          ),
+        // the camera-problem message has its own Search by name button
+        ValueListenableBuilder<MobileScannerState>(
+          valueListenable: _camera,
+          builder: (_, cam, _) => cam.error != null
+              ? const SizedBox.shrink()
+              : Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 24,
+                  child: SafeArea(
+                    child: FilledButton.icon(
+                      key: const Key('search-by-name'),
+                      onPressed: _searchByName,
+                      icon: const Icon(Icons.search),
+                      label: Text(l.searchByName),
+                    ),
+                  ),
+                ),
         ),
         if (_outcome != null)
           Positioned.fill(
@@ -232,9 +260,11 @@ class _Viewfinder extends StatelessWidget {
 /// Camera access denied (or the camera failed): explain, offer Settings,
 /// and keep the door working by name.
 class _CameraProblem extends StatelessWidget {
-  const _CameraProblem({required this.denied, required this.onSearch});
+  const _CameraProblem(
+      {required this.denied, required this.onSearch, required this.onOpenSettings});
   final bool denied;
   final VoidCallback onSearch;
+  final VoidCallback onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -250,7 +280,7 @@ class _CameraProblem extends StatelessWidget {
         actions: [
           if (denied)
             FilledButton.icon(
-              onPressed: () => AppSettings.openAppSettings(),
+              onPressed: onOpenSettings,
               icon: const Icon(Icons.settings),
               label: Text(l.openSettings),
             ),
@@ -259,7 +289,6 @@ class _CameraProblem extends StatelessWidget {
             icon: const Icon(Icons.search),
             label: Text(l.searchByName),
           ),
-          const SizedBox(height: 80), // clear of the search button below
         ],
       ),
     );
